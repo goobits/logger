@@ -1,0 +1,56 @@
+{
+	"name": "@goobits/logger",
+	"version": "1.0.0",
+	"description": "Production-ready structured logger with a pluggable interface, AsyncLocalStorage context propagation, and module-scoped log levels. Drop-in implementation of the Logger interface used across @goobits/* packages.",
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"sideEffects": false,
+	"exports": {
+		".": "./src/index.ts",
+		"./context": "./src/context.ts",
+		"./helpers": "./src/helpers.ts"
+	},
+	"keywords": [
+		"logger",
+		"logging",
+		"structured-logging",
+		"sveltekit",
+		"async-local-storage",
+		"context-propagation",
+		"esm",
+		"typescript"
+	],
+	"author": "Goobits",
+	"license": "MIT",
+	"homepage": "https://github.com/goobits/logger#readme",
+	"bugs": "https://github.com/goobits/logger/issues",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/goobits/logger.git"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"packageManager": "pnpm@10.13.1",
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"peerDependenciesMeta": {
+		"typescript": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@types/node": "^22.10.0",
+		"typescript": "^5.9.0",
+		"vitest": "^4.0.0"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"clean": "rm -rf node_modules .turbo"
+	}
+}
