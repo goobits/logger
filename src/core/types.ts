@@ -33,6 +33,16 @@ export const LogLevel = {
 	NONE: 4
 } as const
 
+/**
+ * Legacy alias of `LogLevel` (plural). Kept for backward compatibility with
+ * older `@goobits/store` (and any other pre-1.0 consumer) that imported the
+ * plural name from earlier published dists. Prefer `LogLevel` (singular) in
+ * new code.
+ *
+ * @deprecated use `LogLevel`
+ */
+export const LogLevels = LogLevel
+
 /** Numeric value of a `LogLevel`. */
 export type LogLevelValue = (typeof LogLevel)[keyof typeof LogLevel]
 

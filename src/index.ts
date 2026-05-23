@@ -23,7 +23,7 @@
  */
 
 export { LoggerConfig } from './core/config.js'
-export { Logger, createLogger, noopLogger } from './core/logger.js'
+export { Logger, createLogger, logger, noopLogger } from './core/logger.js'
 export {
 	type LogContext,
 	type LogFormat,
@@ -32,5 +32,6 @@ export {
 	type LogLevelValue,
 	type LoggerConfiguration,
 	type LoggerInstanceOptions,
-	LogLevel
+	LogLevel,
+	LogLevels
 } from './core/types.js'

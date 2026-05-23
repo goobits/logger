@@ -126,6 +126,17 @@ export function createLogger(moduleName?: string, context: LogContext = {}): Log
 }
 
 /**
+ * A module-less default `Logger` instance — convenience for casual logging
+ * sites that don't need a module-scoped name. Equivalent to `new Logger()`.
+ *
+ * Prefer `createLogger('my-module')` in library / framework code where the
+ * module name aids filtering. The default `logger` is best for one-off
+ * scripts, small utilities, and consumer code that already files its calls
+ * under another organizational key (request id, action name).
+ */
+export const logger = new Logger()
+
+/**
  * A no-op logger that swallows every call. Use this as the default for
  * factories where silent operation is preferred over forced output.
  */
