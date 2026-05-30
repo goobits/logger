@@ -8,6 +8,7 @@
  * @module @goobits/logger
  */
 
+import { createLogger } from './logger.js'
 import type { LogContext } from './types.js'
 
 /** A recorded error with the context and time it was collected. */
@@ -29,6 +30,22 @@ export interface ErrorCollector {
 	clear(): void
 }
 
+/** Legacy scoped collector shape from the old Sketchpad logger. */
+export interface ScopedErrorCollector {
+	/** Record an error with optional structured context. */
+	record(error: Error, context?: LogContext): void
+	/** Emit a grouped summary and keep entries available for callers. */
+	flush(): void
+	/** Drop all recorded entries. */
+	clear(): void
+	/** Recorded entries, oldest first. */
+	readonly entries: readonly ErrorEntry[]
+	/** Number of recorded entries. */
+	readonly count: number
+	/** Human-readable collection scope. */
+	readonly scope: string
+}
+
 /** Default cap on retained entries; oldest are evicted past this. */
 const DEFAULT_MAX_ENTRIES = 100
 
@@ -45,10 +62,17 @@ const DEFAULT_MAX_ENTRIES = 100
  *   errors.collect(new Error('boom'), { route: '/checkout' })
  *   errors.count() // 1
  */
+export function createErrorCollector(maxEntries?: number, now?: () => number): ErrorCollector
+export function createErrorCollector(scope: string, loggerName?: string): ScopedErrorCollector
 export function createErrorCollector(
-	maxEntries: number = DEFAULT_MAX_ENTRIES,
-	now: () => number = () => Date.now()
-): ErrorCollector {
+	first: number | string = DEFAULT_MAX_ENTRIES,
+	second: (() => number) | string = () => Date.now()
+): ErrorCollector | ScopedErrorCollector {
+	if (typeof first === 'string') {
+		return createScopedErrorCollector(first, typeof second === 'string' ? second : 'error-collector')
+	}
+	const maxEntries = first
+	const now = typeof second === 'function' ? second : () => Date.now()
 	const cap = Math.max(1, Math.floor(maxEntries))
 	const entries: ErrorEntry[] = []
 
@@ -65,6 +89,45 @@ export function createErrorCollector(
 		},
 		clear(): void {
 			entries.length = 0
+		}
+	}
+}
+
+function createScopedErrorCollector(scope: string, loggerName: string): ScopedErrorCollector {
+	const entries: ErrorEntry[] = []
+
+	return {
+		record(error: Error, context: LogContext = {}): void {
+			entries.push({ error, context, timestamp: Date.now() })
+		},
+		flush(): void {
+			if (entries.length === 0) return
+
+			const grouped = new Map<string, ErrorEntry[]>()
+			for (const entry of entries) {
+				const key = String(entry.context['type'] || entry.error.name || 'Error')
+				grouped.set(key, [ ...(grouped.get(key) ?? []), entry ])
+			}
+
+			const parts: string[] = []
+			for (const [ type, group ] of grouped) {
+				const details = group.map(entry => entry.context['layer'] || entry.error.message).join(', ')
+				parts.push(`${ type } (${ group.length }): ${ details }`)
+			}
+
+			createLogger(loggerName).warn(`${ scope }: ${ entries.length } error(s)\n  ${ parts.join('\n  ') }`)
+		},
+		clear(): void {
+			entries.length = 0
+		},
+		get entries(): readonly ErrorEntry[] {
+			return entries
+		},
+		get count(): number {
+			return entries.length
+		},
+		get scope(): string {
+			return scope
 		}
 	}
 }

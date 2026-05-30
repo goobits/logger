@@ -4,13 +4,13 @@ All notable changes to `@goobits/logger` are documented here. The format adheres
 
 ## [1.1.0] - 2026-05-28
 
-Feature-parity pass with `@sketchapi/logger`, so its consumers (notably `@goobits/goo`) can migrate to this package without losing capability. All additive; no breaking changes.
+Feature-parity pass with the legacy Sketchpad logger, so its consumers (notably `@goobits/goo`) can migrate to this package without losing capability. All additive; no breaking changes.
 
 ### Added
 
 - **Error collector** — `createErrorCollector(maxEntries?, now?)` returns a bounded, in-memory `ErrorCollector` (`collect` / `getEntries` / `count` / `clear`) capturing `{ error, context, timestamp }`. Independent of the log pipeline: collecting does not emit, logging does not auto-collect.
 - **Logger registry** — `getLoggerNames()` lists every module name passed to `createLogger`. Tracking only; `createLogger` still returns a fresh instance per call.
-- **Bare-function config API** — `setModuleLevel`, `setGlobalLevel`, `enableModule`, `disableModule` exported at the top level as thin wrappers over `LoggerConfig`, so code written against `import { setModuleLevel } from '@sketchapi/logger'` is a drop-in swap.
+- **Bare-function config API** — `setModuleLevel`, `setGlobalLevel`, `enableModule`, `disableModule` exported at the top level as thin wrappers over `LoggerConfig`, so code written against the old top-level mutators is a drop-in swap.
 - **`productionQuiet`** config flag (default `false`) — when enabled, silences `debug`/`info` in production-like runtimes (`NODE_ENV === 'production'` or non-TTY stdout) while staying verbose in an interactive dev TTY. Per-module overrides still win, so a single module can stay verbose in production.
 
 ## [1.0.0] - 2026-05-21

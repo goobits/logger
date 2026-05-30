@@ -18,7 +18,13 @@ import {
 	LogLevel
 } from './types.js'
 
-function emit(level: LogLevelValue, moduleName: string | null, message: string, mergedContext: LogContext): void {
+function emit(
+	level: LogLevelValue,
+	moduleName: string | null,
+	message: string,
+	mergedContext: LogContext,
+	extraArgs: unknown[]
+): void {
 	if (!isEnabled()) return
 	if (level < getEffectiveLevel(moduleName)) return
 
@@ -36,10 +42,33 @@ function emit(level: LogLevelValue, moduleName: string | null, message: string, 
 
 	// Route by severity. We intentionally use console.* so consumers can
 	// redirect via standard test/console capture mechanisms.
-	if (level === LogLevel.ERROR) console.error(line)
-	else if (level === LogLevel.WARN) console.warn(line)
-	else if (level === LogLevel.DEBUG) console.debug(line)
-	else console.log(line)
+	if (level === LogLevel.ERROR) console.error(line, ...extraArgs)
+	else if (level === LogLevel.WARN) console.warn(line, ...extraArgs)
+	else if (level === LogLevel.DEBUG) console.debug(line, ...extraArgs)
+	else console.log(line, ...extraArgs)
+}
+
+function isRecord(value: unknown): value is LogContext {
+	return Boolean(value) &&
+		typeof value === 'object' &&
+		!Array.isArray(value) &&
+		!(value instanceof Error)
+}
+
+function normalizeArgs(args: unknown[]): {
+	message: string
+	context: LogContext | undefined
+	extraArgs: unknown[]
+} {
+	const [ first, ...rest ] = args
+	const message = typeof first === 'string' ? first : String(first)
+	if (rest.length === 0) {
+		return { message, context: undefined, extraArgs: [] }
+	}
+	if (rest.length === 1 && isRecord(rest[0])) {
+		return { message, context: rest[0], extraArgs: [] }
+	}
+	return { message, context: undefined, extraArgs: rest }
 }
 
 /**
@@ -68,20 +97,28 @@ export class Logger implements LoggerInterface {
 		return { ...asyncContext, ...this.baseContext, ...(context ?? {}) }
 	}
 
-	debug(message: string, context?: LogContext): void {
-		emit(LogLevel.DEBUG, this.moduleName, message, this.compose(context))
+	get name(): string {
+		return this.moduleName ?? ''
 	}
 
-	info(message: string, context?: LogContext): void {
-		emit(LogLevel.INFO, this.moduleName, message, this.compose(context))
+	debug(...args: unknown[]): void {
+		const { message, context, extraArgs } = normalizeArgs(args)
+		emit(LogLevel.DEBUG, this.moduleName, message, this.compose(context), extraArgs)
 	}
 
-	warn(message: string, context?: LogContext): void {
-		emit(LogLevel.WARN, this.moduleName, message, this.compose(context))
+	info(...args: unknown[]): void {
+		const { message, context, extraArgs } = normalizeArgs(args)
+		emit(LogLevel.INFO, this.moduleName, message, this.compose(context), extraArgs)
 	}
 
-	error(message: string, context?: LogContext): void {
-		emit(LogLevel.ERROR, this.moduleName, message, this.compose(context))
+	warn(...args: unknown[]): void {
+		const { message, context, extraArgs } = normalizeArgs(args)
+		emit(LogLevel.WARN, this.moduleName, message, this.compose(context), extraArgs)
+	}
+
+	error(...args: unknown[]): void {
+		const { message, context, extraArgs } = normalizeArgs(args)
+		emit(LogLevel.ERROR, this.moduleName, message, this.compose(context), extraArgs)
 	}
 
 	/**
