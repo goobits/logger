@@ -24,6 +24,10 @@
 
 export {
 	LoggerConfig,
+	getConfig,
+	getEffectiveLevel,
+	isProduction,
+	resetConfig,
 	disableModule,
 	enableModule,
 	setGlobalLevel,
@@ -33,6 +37,7 @@ export { Logger, createLogger, getLoggerNames, logger, noopLogger } from './core
 export { createErrorCollector } from './core/error-collector.js'
 export {
 	type ErrorCollector,
+	type ScopedErrorCollector,
 	type ErrorEntry
 } from './core/error-collector.js'
 export {
@@ -43,6 +48,8 @@ export {
 	type LogLevelValue,
 	type LoggerConfiguration,
 	type LoggerInstanceOptions,
+	LEVEL_NAMES,
+	LEVELS,
 	LogLevel,
 	LogLevels
 } from './core/types.js'

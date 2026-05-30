@@ -21,6 +21,14 @@ interface AsyncLocalStorageLike<T> {
 	run<R>(value: T, fn: () => R): R
 }
 
+type AsyncHooksModule = {
+	AsyncLocalStorage: new <T>() => AsyncLocalStorageLike<T>
+}
+
+function dynamicImport(specifier: string): Promise<unknown> {
+	return import(/* @vite-ignore */ specifier)
+}
+
 let asyncStore: AsyncLocalStorageLike<Store> | null = null
 let fallbackStore: Store = {}
 
@@ -28,9 +36,7 @@ async function tryLoadAsyncLocalStorage(): Promise<void> {
 	if (asyncStore !== null) return
 	try {
 		// Dynamic import so non-Node bundles don't fail to resolve the path.
-		const mod = (await import('node:async_hooks')) as {
-			AsyncLocalStorage: new <T>() => AsyncLocalStorageLike<T>
-		}
+		const mod = (await dynamicImport('node:async_hooks')) as AsyncHooksModule
 		asyncStore = new mod.AsyncLocalStorage<Store>()
 	} catch {
 		asyncStore = null

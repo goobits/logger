@@ -14,7 +14,8 @@ import {
 	type LogLevelName,
 	type LogLevelValue,
 	type LoggerConfiguration,
-	LogLevel
+	LogLevel,
+	LEVEL_NAMES
 } from './types.js'
 
 interface InternalConfig {
@@ -25,6 +26,15 @@ interface InternalConfig {
 	globalPrefix: string
 	modules: Record<string, LogLevelValue>
 	productionQuiet: boolean
+}
+
+type RuntimeProcess = {
+	env?: Record<string, string | undefined>
+	stdout?: { isTTY?: boolean }
+}
+
+function getRuntimeProcess(): RuntimeProcess | undefined {
+	return (globalThis as typeof globalThis & { process?: RuntimeProcess }).process
 }
 
 const DEFAULTS: InternalConfig = Object.freeze({
@@ -55,11 +65,31 @@ let state: InternalConfig = {
  * @internal
  */
 export function isProductionLike(): boolean {
-	if (typeof process === 'undefined') return true
-	if (process.env && process.env['NODE_ENV'] === 'production') return true
-	const stdout = process.stdout as { isTTY?: boolean } | undefined
+	const runtimeProcess = getRuntimeProcess()
+	if (!runtimeProcess) return true
+	if (runtimeProcess.env && runtimeProcess.env['NODE_ENV'] === 'production') return true
+	const stdout = runtimeProcess.stdout
 	// No stdout, or non-TTY stdout, reads as production-like.
 	return !stdout || !stdout.isTTY
+}
+
+/**
+ * Legacy browser-aware production detector from the old Sketchpad logger.
+ * Prefer `isProductionLike()` for server/runtime logging policy.
+ */
+export function isProduction(): boolean {
+	const runtimeProcess = getRuntimeProcess()
+	if (runtimeProcess?.env && runtimeProcess.env['NODE_ENV'] === 'production') {
+		return true
+	}
+	if (typeof window !== 'undefined') {
+		const hostname = window.location?.hostname ?? ''
+		return hostname !== 'localhost' &&
+			!hostname.includes('127.0.0.1') &&
+			!hostname.includes('.local') &&
+			!hostname.includes(':')
+	}
+	return isProductionLike()
 }
 
 function coerceLevel(level: LogLevelValue | LogLevelName): LogLevelValue {
@@ -72,7 +102,7 @@ function coerceLevel(level: LogLevelValue | LogLevelName): LogLevelValue {
 }
 
 function readBootEnv(): void {
-	const env = typeof process !== 'undefined' ? process.env : undefined
+	const env = getRuntimeProcess()?.env
 	if (!env) return
 
 	const envLevel = env['LOG_LEVEL']
@@ -209,8 +239,7 @@ export const LoggerConfig = {
 // Bare-function convenience API
 //
 // Thin wrappers over `LoggerConfig` so `@goobits/logger` is a drop-in for
-// code written against loggers that expose top-level mutators (e.g.
-// `import { setModuleLevel } from '@sketchapi/logger'`). Behaviour is
+// code written against loggers that expose top-level mutators. Behaviour is
 // identical to calling the matching `LoggerConfig` method.
 // ===========================================================================
 
@@ -222,6 +251,38 @@ export function setModuleLevel(moduleName: string, level: LogLevelValue | LogLev
 /** Set the global minimum level. Equivalent to `LoggerConfig.setLogLevel`. */
 export function setGlobalLevel(level: LogLevelValue | LogLevelName): void {
 	LoggerConfig.setLogLevel(level)
+}
+
+/** Reset logger configuration. Legacy alias for `LoggerConfig.reset()`. */
+export function resetConfig(): void {
+	LoggerConfig.reset()
+}
+
+/**
+ * Legacy Sketchpad config snapshot shape.
+ * Prefer `LoggerConfig.getConfig()` for structured Goobits config.
+ */
+export function getConfig(): {
+	globalLevel: LogLevelName
+	moduleOverrides: Record<string, LogLevelName>
+	disabledModules: string[]
+	isProduction: boolean
+	levels: readonly LogLevelName[]
+} {
+	const config = LoggerConfig.getConfig()
+	const moduleOverrides: Record<string, LogLevelName> = {}
+	for (const [ moduleName, level ] of Object.entries(config.modules)) {
+		moduleOverrides[moduleName] = levelNameForValue(level)
+	}
+	return {
+		globalLevel: levelNameForValue(config.level),
+		moduleOverrides,
+		disabledModules: Object.entries(config.modules)
+			.filter(([, level ]) => level >= LogLevel.NONE)
+			.map(([ moduleName ]) => moduleName),
+		isProduction: isProduction(),
+		levels: LEVEL_NAMES
+	}
 }
 
 /**
@@ -270,12 +331,21 @@ export function isEnabled(): boolean {
 export function getActiveFormat(): 'json' | 'human' {
 	if (state.format === 'json' || state.format === 'human') return state.format
 	// 'auto': JSON when stdout is non-TTY (production), human otherwise.
-	if (typeof process === 'undefined') return 'human'
-	const isTTY = Boolean(process.stdout && (process.stdout as { isTTY?: boolean }).isTTY)
+	const runtimeProcess = getRuntimeProcess()
+	if (!runtimeProcess) return 'human'
+	const isTTY = Boolean(runtimeProcess.stdout?.isTTY)
 	return isTTY ? 'human' : 'json'
 }
 
 /** @internal */
 export function getInternalState(): Readonly<InternalConfig> {
 	return state
+}
+
+function levelNameForValue(level: LogLevelValue): LogLevelName {
+	if (level <= LogLevel.DEBUG) return 'DEBUG'
+	if (level <= LogLevel.INFO) return 'INFO'
+	if (level <= LogLevel.WARN) return 'WARN'
+	if (level <= LogLevel.ERROR) return 'ERROR'
+	return 'SILENT'
 }

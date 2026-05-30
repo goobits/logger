@@ -18,10 +18,15 @@ export type LogContext = Record<string, unknown>
  * that accepts a `Logger`.
  */
 export interface Logger {
+	readonly name?: string
 	debug(message: string, context?: LogContext): void
+	debug(...args: unknown[]): void
 	info(message: string, context?: LogContext): void
+	info(...args: unknown[]): void
 	warn(message: string, context?: LogContext): void
+	warn(...args: unknown[]): void
 	error(message: string, context?: LogContext): void
+	error(...args: unknown[]): void
 }
 
 /** Numeric log levels, in increasing severity. `NONE` disables output. */
@@ -30,7 +35,8 @@ export const LogLevel = {
 	INFO: 1,
 	WARN: 2,
 	ERROR: 3,
-	NONE: 4
+	NONE: 4,
+	SILENT: 4
 } as const
 
 /**
@@ -42,6 +48,12 @@ export const LogLevel = {
  * @deprecated use `LogLevel`
  */
 export const LogLevels = LogLevel
+
+/** Legacy `the legacy Sketchpad logger` level map. Prefer `LogLevel`. */
+export const LEVELS = LogLevel
+
+/** Legacy `the legacy Sketchpad logger` level names. Prefer `LogLevel`. */
+export const LEVEL_NAMES = [ 'DEBUG', 'INFO', 'WARN', 'ERROR', 'SILENT' ] as const
 
 /** Numeric value of a `LogLevel`. */
 export type LogLevelValue = (typeof LogLevel)[keyof typeof LogLevel]
