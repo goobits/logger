@@ -66,6 +66,12 @@ export interface LoggerConfiguration {
 	globalPrefix?: string
 	/** Per-module level overrides. Module names match `new Logger(name)` argument. */
 	modules?: Record<string, LogLevelValue>
+	/**
+	 * When `true`, silence `debug`/`info` in production-like runtimes
+	 * (`NODE_ENV === 'production'` or non-TTY stdout) while staying verbose in
+	 * an interactive dev TTY. Per-module overrides still win. Default: `false`.
+	 */
+	productionQuiet?: boolean
 }
 
 /** Options accepted by `new Logger(...)` and `createLogger(...)`. */

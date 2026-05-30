@@ -22,8 +22,19 @@
  * @module @goobits/logger
  */
 
-export { LoggerConfig } from './core/config.js'
-export { Logger, createLogger, logger, noopLogger } from './core/logger.js'
+export {
+	LoggerConfig,
+	disableModule,
+	enableModule,
+	setGlobalLevel,
+	setModuleLevel
+} from './core/config.js'
+export { Logger, createLogger, getLoggerNames, logger, noopLogger } from './core/logger.js'
+export { createErrorCollector } from './core/error-collector.js'
+export {
+	type ErrorCollector,
+	type ErrorEntry
+} from './core/error-collector.js'
 export {
 	type LogContext,
 	type LogFormat,

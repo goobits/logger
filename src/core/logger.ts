@@ -117,12 +117,36 @@ export class Logger implements LoggerInterface {
 }
 
 /**
+ * Registry of module names seen by `createLogger`. Used for introspection
+ * via {@link getLoggerNames}; it does NOT change instance identity —
+ * `createLogger('x')` still returns a fresh `Logger` each call.
+ */
+const moduleNames = new Set<string>()
+
+/**
  * Factory: create a logger with a module name and optional base context.
  * Equivalent to `new Logger(moduleName, { context })`; provided for
  * callers who prefer a function over `new`.
+ *
+ * Named loggers record their module name for {@link getLoggerNames}.
  */
 export function createLogger(moduleName?: string, context: LogContext = {}): Logger {
+	if (moduleName) moduleNames.add(moduleName)
 	return new Logger(moduleName ?? null, { context })
+}
+
+/**
+ * Names of every module passed to {@link createLogger} so far, in insertion
+ * order. Useful for tooling that wants to list or configure levels for all
+ * known modules. Pair with `LoggerConfig.setModuleLevel` / `setModuleLevel`.
+ */
+export function getLoggerNames(): string[] {
+	return Array.from(moduleNames)
+}
+
+/** Test-only: forget all recorded module names. Not part of the public API. */
+export function _resetLoggerRegistryForTests(): void {
+	moduleNames.clear()
 }
 
 /**

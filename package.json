@@ -1,6 +1,6 @@
 {
 	"name": "@goobits/logger",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "Production-ready structured logger with a pluggable interface, AsyncLocalStorage context propagation, and module-scoped log levels. Drop-in implementation of the Logger interface used across @goobits/* packages.",
 	"type": "module",
 	"main": "./src/index.ts",

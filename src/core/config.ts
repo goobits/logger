@@ -24,6 +24,7 @@ interface InternalConfig {
 	showTimestamps: boolean
 	globalPrefix: string
 	modules: Record<string, LogLevelValue>
+	productionQuiet: boolean
 }
 
 const DEFAULTS: InternalConfig = Object.freeze({
@@ -32,7 +33,8 @@ const DEFAULTS: InternalConfig = Object.freeze({
 	format: 'auto',
 	showTimestamps: true,
 	globalPrefix: '',
-	modules: Object.freeze({}) as Record<string, LogLevelValue>
+	modules: Object.freeze({}) as Record<string, LogLevelValue>,
+	productionQuiet: false
 })
 
 let state: InternalConfig = {
@@ -41,7 +43,23 @@ let state: InternalConfig = {
 	format: DEFAULTS.format,
 	showTimestamps: DEFAULTS.showTimestamps,
 	globalPrefix: DEFAULTS.globalPrefix,
-	modules: { ...DEFAULTS.modules }
+	modules: { ...DEFAULTS.modules },
+	productionQuiet: DEFAULTS.productionQuiet
+}
+
+/**
+ * Whether the runtime looks like production: `NODE_ENV === 'production'`, or
+ * stdout is not a TTY (typical for deployed servers, Workers, CI). Used only
+ * when `productionQuiet` is enabled.
+ *
+ * @internal
+ */
+export function isProductionLike(): boolean {
+	if (typeof process === 'undefined') return true
+	if (process.env && process.env['NODE_ENV'] === 'production') return true
+	const stdout = process.stdout as { isTTY?: boolean } | undefined
+	// No stdout, or non-TTY stdout, reads as production-like.
+	return !stdout || !stdout.isTTY
 }
 
 function coerceLevel(level: LogLevelValue | LogLevelName): LogLevelValue {
@@ -100,6 +118,22 @@ export const LoggerConfig = {
 		state.modules = { ...state.modules, [moduleName]: coerceLevel(level) }
 	},
 
+	/**
+	 * When enabled, `debug` and `info` are silenced in production-like
+	 * runtimes (see `isProductionLike`): `NODE_ENV === 'production'` or a
+	 * non-TTY stdout. In dev (interactive TTY) it is a no-op, so libraries
+	 * stay verbose locally and quiet in production without per-env wiring.
+	 * Per-module level overrides still win, so you can force one module
+	 * verbose even in production. Default: `false`.
+	 */
+	setProductionQuiet(enabled: boolean): void {
+		state.productionQuiet = enabled
+	},
+
+	getProductionQuiet(): boolean {
+		return state.productionQuiet
+	},
+
 	/** Output format. `'auto'` picks JSON when stdout is non-TTY (typical in production). */
 	setFormat(format: LogFormat): void {
 		state.format = format
@@ -141,6 +175,7 @@ export const LoggerConfig = {
 		if (options.showTimestamps !== undefined) state.showTimestamps = options.showTimestamps
 		if (options.globalPrefix !== undefined) state.globalPrefix = options.globalPrefix
 		if (options.modules !== undefined) state.modules = { ...options.modules }
+		if (options.productionQuiet !== undefined) state.productionQuiet = options.productionQuiet
 	},
 
 	/** Snapshot of the current config (defensively copied). */
@@ -151,7 +186,8 @@ export const LoggerConfig = {
 			format: state.format,
 			showTimestamps: state.showTimestamps,
 			globalPrefix: state.globalPrefix,
-			modules: { ...state.modules }
+			modules: { ...state.modules },
+			productionQuiet: state.productionQuiet
 		}
 	},
 
@@ -163,9 +199,46 @@ export const LoggerConfig = {
 			format: DEFAULTS.format,
 			showTimestamps: DEFAULTS.showTimestamps,
 			globalPrefix: DEFAULTS.globalPrefix,
-			modules: { ...DEFAULTS.modules }
+			modules: { ...DEFAULTS.modules },
+			productionQuiet: DEFAULTS.productionQuiet
 		}
 	}
+}
+
+// ===========================================================================
+// Bare-function convenience API
+//
+// Thin wrappers over `LoggerConfig` so `@goobits/logger` is a drop-in for
+// code written against loggers that expose top-level mutators (e.g.
+// `import { setModuleLevel } from '@sketchapi/logger'`). Behaviour is
+// identical to calling the matching `LoggerConfig` method.
+// ===========================================================================
+
+/** Set the level for one module. Equivalent to `LoggerConfig.setModuleLevel`. */
+export function setModuleLevel(moduleName: string, level: LogLevelValue | LogLevelName): void {
+	LoggerConfig.setModuleLevel(moduleName, level)
+}
+
+/** Set the global minimum level. Equivalent to `LoggerConfig.setLogLevel`. */
+export function setGlobalLevel(level: LogLevelValue | LogLevelName): void {
+	LoggerConfig.setLogLevel(level)
+}
+
+/**
+ * Silence a single module entirely (sets its level to `NONE`). Reverse with
+ * `enableModule`.
+ */
+export function disableModule(moduleName: string): void {
+	LoggerConfig.setModuleLevel(moduleName, LogLevel.NONE)
+}
+
+/**
+ * Remove a module's level override so it inherits the global level again.
+ * Reverses `disableModule` (and any prior `setModuleLevel` for that module).
+ */
+export function enableModule(moduleName: string): void {
+	const { [moduleName]: _removed, ...rest } = state.modules
+	state.modules = rest
 }
 
 /**
@@ -175,8 +248,15 @@ export const LoggerConfig = {
  * @internal
  */
 export function getEffectiveLevel(moduleName: string | null): LogLevelValue {
+	// Explicit per-module override always wins, in either direction. This lets
+	// a single module stay verbose even under productionQuiet.
 	if (moduleName && state.modules[moduleName] !== undefined) {
 		return state.modules[moduleName]
+	}
+	// productionQuiet floors the level at WARN in production-like runtimes,
+	// so debug/info are dropped without affecting dev (interactive TTY).
+	if (state.productionQuiet && isProductionLike() && state.level < LogLevel.WARN) {
+		return LogLevel.WARN
 	}
 	return state.level
 }

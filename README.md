@@ -154,6 +154,53 @@ Boot-time env vars also work:
 LOG_LEVEL=DEBUG LOG_FORMAT=json node server.js
 ```
 
+### Bare-function config API
+
+For code that prefers top-level mutators (and as a drop-in for loggers that expose them), the common `LoggerConfig` operations are also exported as functions:
+
+```ts
+import { setGlobalLevel, setModuleLevel, disableModule, enableModule } from '@goobits/logger'
+
+setGlobalLevel('WARN')           // global minimum
+setModuleLevel('goo', 'DEBUG')   // verbose for one module
+disableModule('noisy')           // silence one module (level NONE)
+enableModule('noisy')            // remove the override, inherit global again
+```
+
+### `productionQuiet` — quiet in prod, verbose in dev
+
+```ts
+import { LoggerConfig } from '@goobits/logger'
+
+LoggerConfig.setProductionQuiet(true)
+```
+
+When enabled, `debug`/`info` are dropped in production-like runtimes (`NODE_ENV === 'production'` or a non-TTY stdout) but stay visible in an interactive dev terminal — so a library can be chatty locally and quiet when deployed without wiring its own env check. Per-module overrides still win, so `setModuleLevel('goo', 'DEBUG')` keeps that module verbose even in production.
+
+### Listing known modules
+
+```ts
+import { createLogger, getLoggerNames } from '@goobits/logger'
+
+createLogger('checkout')
+createLogger('search')
+getLoggerNames() // ['checkout', 'search']
+```
+
+## `createErrorCollector` — bounded error history
+
+Capture a rolling window of errors with context for later inspection (test assertions, error panels, crash reports). It does not log; pair it with a logger at the call site if you want both.
+
+```ts
+import { createErrorCollector } from '@goobits/logger'
+
+const errors = createErrorCollector(100)        // keep the last 100
+errors.collect(new Error('boom'), { route: '/checkout' })
+errors.count()       // 1
+errors.getEntries()  // [{ error, context: { route: '/checkout' }, timestamp }]
+errors.clear()
+```
+
 ## `child()` — extending base context
 
 ```ts
