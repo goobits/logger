@@ -25,8 +25,19 @@ type AsyncHooksModule = {
 	AsyncLocalStorage: new <T>() => AsyncLocalStorageLike<T>
 }
 
+type NodeProcessGlobal = {
+	versions?: {
+		node?: string
+	}
+}
+
 function dynamicImport(specifier: string): Promise<unknown> {
 	return import(/* @vite-ignore */ specifier)
+}
+
+function canLoadNodeAsyncHooks(): boolean {
+	const processLike = (globalThis as { process?: NodeProcessGlobal }).process
+	return typeof processLike?.versions?.node === 'string'
 }
 
 let asyncStore: AsyncLocalStorageLike<Store> | null = null
@@ -34,6 +45,7 @@ let fallbackStore: Store = {}
 
 async function tryLoadAsyncLocalStorage(): Promise<void> {
 	if (asyncStore !== null) return
+	if (!canLoadNodeAsyncHooks()) return
 	try {
 		// Dynamic import so non-Node bundles don't fail to resolve the path.
 		const mod = (await dynamicImport('node:async_hooks')) as AsyncHooksModule
