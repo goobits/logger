@@ -23,33 +23,31 @@
  */
 
 export {
-	LoggerConfig,
+	disableModule,
+	enableModule,
 	getConfig,
 	getEffectiveLevel,
 	isProduction,
+	LoggerConfig,
 	resetConfig,
-	disableModule,
-	enableModule,
 	setGlobalLevel,
 	setModuleLevel
 } from './core/config.ts'
-export { Logger, createLogger, getLoggerNames, logger, noopLogger } from './core/logger.ts'
 export { createErrorCollector } from './core/error-collector.ts'
 export {
 	type ErrorCollector,
-	type ScopedErrorCollector,
-	type ErrorEntry
-} from './core/error-collector.ts'
+	type ErrorEntry,
+	type ScopedErrorCollector } from './core/error-collector.ts'
+export { createLogger, getLoggerNames, Logger, logger, noopLogger } from './core/logger.ts'
 export {
-	type LogContext,
-	type LogFormat,
-	type Logger as LoggerInterface,
-	type LogLevelName,
-	type LogLevelValue,
-	type LoggerConfiguration,
-	type LoggerInstanceOptions,
 	LEVEL_NAMES,
 	LEVELS,
+	type LogContext,
+	type LogFormat,
+	type LoggerConfiguration,
+	type LoggerInstanceOptions,
+	type Logger as LoggerInterface,
 	LogLevel,
-	LogLevels
-} from './core/types.ts'
+	type LogLevelName,
+	LogLevels,
+	type LogLevelValue } from './core/types.ts'

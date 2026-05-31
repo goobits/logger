@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { LogContextKeys, withLogContextAsync, withRequestId } from '../src/context.js'
 import { LoggerConfig } from '../src/core/config.js'
 import { createLogger } from '../src/core/logger.js'
-import { LogContextKeys, withLogContextAsync, withRequestId } from '../src/context.js'
 
 const captured: string[] = []
 let logSpy: ReturnType<typeof vi.spyOn>
@@ -24,7 +24,7 @@ afterEach(() => {
 })
 
 describe('withLogContextAsync', () => {
-	it('makes context visible to sync log calls inside fn', async () => {
+	it('makes context visible to sync log calls inside fn', async() => {
 		const log = createLogger('api')
 		await withLogContextAsync({ user_id: 'u1' }, () => {
 			log.info('msg')
@@ -33,11 +33,11 @@ describe('withLogContextAsync', () => {
 		expect(parsed['user_id']).toBe('u1')
 	})
 
-	it('propagates across await boundaries', async () => {
+	it('propagates across await boundaries', async() => {
 		const log = createLogger('api')
-		await withLogContextAsync({ user_id: 'u1' }, async () => {
+		await withLogContextAsync({ user_id: 'u1' }, async() => {
 			log.info('before')
-			await new Promise((resolve) => setTimeout(resolve, 0))
+			await new Promise(resolve => setTimeout(resolve, 0))
 			log.info('after')
 		})
 		expect(captured).toHaveLength(2)
@@ -47,19 +47,19 @@ describe('withLogContextAsync', () => {
 		expect(parsed2['user_id']).toBe('u1')
 	})
 
-	it('isolates context across concurrent calls (AsyncLocalStorage)', async () => {
+	it('isolates context across concurrent calls (AsyncLocalStorage)', async() => {
 		const log = createLogger('api')
 		const linesByUser: Record<string, number> = {}
 
 		await Promise.all([
-			withLogContextAsync({ user_id: 'A' }, async () => {
+			withLogContextAsync({ user_id: 'A' }, async() => {
 				log.info('msg')
-				await new Promise((resolve) => setTimeout(resolve, 10))
+				await new Promise(resolve => setTimeout(resolve, 10))
 				log.info('msg')
 			}),
-			withLogContextAsync({ user_id: 'B' }, async () => {
+			withLogContextAsync({ user_id: 'B' }, async() => {
 				log.info('msg')
-				await new Promise((resolve) => setTimeout(resolve, 5))
+				await new Promise(resolve => setTimeout(resolve, 5))
 				log.info('msg')
 			})
 		])
@@ -75,7 +75,7 @@ describe('withLogContextAsync', () => {
 		expect(linesByUser['none']).toBeUndefined()
 	})
 
-	it('per-call context wins over async-local context', async () => {
+	it('per-call context wins over async-local context', async() => {
 		const log = createLogger('api')
 		await withLogContextAsync({ user_id: 'A' }, () => {
 			log.info('msg', { user_id: 'B' })
@@ -84,14 +84,14 @@ describe('withLogContextAsync', () => {
 		expect(parsed['user_id']).toBe('B')
 	})
 
-	it('returns the fn return value', async () => {
+	it('returns the fn return value', async() => {
 		const result = await withLogContextAsync({ x: 1 }, () => 42)
 		expect(result).toBe(42)
 	})
 })
 
 describe('withRequestId', () => {
-	it('adds request_id to every log call inside fn', async () => {
+	it('adds request_id to every log call inside fn', async() => {
 		const log = createLogger('api')
 		await withRequestId('req-123', () => {
 			log.info('msg')
@@ -100,7 +100,7 @@ describe('withRequestId', () => {
 		expect(parsed[LogContextKeys.REQUEST_ID]).toBe('req-123')
 	})
 
-	it('merges with explicit context', async () => {
+	it('merges with explicit context', async() => {
 		const log = createLogger('api')
 		await withRequestId('req-1', () => {
 			log.info('msg', { user_id: 'u1' })

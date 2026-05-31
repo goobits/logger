@@ -10,13 +10,12 @@
  */
 
 import {
+	LEVEL_NAMES,
 	type LogFormat,
-	type LogLevelName,
-	type LogLevelValue,
 	type LoggerConfiguration,
 	LogLevel,
-	LEVEL_NAMES
-} from './types.ts'
+	type LogLevelName,
+	type LogLevelValue } from './types.ts'
 
 interface InternalConfig {
 	enabled: boolean
@@ -69,6 +68,7 @@ export function isProductionLike(): boolean {
 	if (!runtimeProcess) return true
 	if (runtimeProcess.env && runtimeProcess.env['NODE_ENV'] === 'production') return true
 	const stdout = runtimeProcess.stdout
+
 	// No stdout, or non-TTY stdout, reads as production-like.
 	return !stdout || !stdout.isTTY
 }
@@ -310,7 +310,7 @@ export function getConfig(): {
 		globalLevel: levelNameForValue(config.level),
 		moduleOverrides,
 		disabledModules: Object.entries(config.modules)
-			.filter(([, level ]) => level >= LogLevel.NONE)
+			.filter(([ , level ]) => level >= LogLevel.NONE)
 			.map(([ moduleName ]) => moduleName),
 		isProduction: isProduction(),
 		levels: LEVEL_NAMES
@@ -351,6 +351,7 @@ export function getEffectiveLevel(moduleName: string | null): LogLevelValue {
 	if (moduleName && state.modules[moduleName] !== undefined) {
 		return state.modules[moduleName]
 	}
+
 	// productionQuiet floors the level at WARN in production-like runtimes,
 	// so debug/info are dropped without affecting dev (interactive TTY).
 	if (state.productionQuiet && isProductionLike() && state.level < LogLevel.WARN) {
@@ -367,6 +368,7 @@ export function isEnabled(): boolean {
 /** @internal */
 export function getActiveFormat(): 'json' | 'human' {
 	if (state.format === 'json' || state.format === 'human') return state.format
+
 	// 'auto': JSON when stdout is non-TTY (production), human otherwise.
 	const runtimeProcess = getRuntimeProcess()
 	if (!runtimeProcess) return 'human'

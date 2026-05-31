@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LoggerConfig } from '../src/core/config.js'
-import { Logger, createLogger, noopLogger } from '../src/core/logger.js'
+import { createLogger, Logger, noopLogger } from '../src/core/logger.js'
 import { LogLevel } from '../src/core/types.js'
 
 const captured: Array<{ method: string; line: string }> = []
@@ -48,7 +48,7 @@ describe('Logger', () => {
 		log.warn('w')
 		log.error('e')
 
-		const methods = captured.map((c) => c.method)
+		const methods = captured.map(c => c.method)
 		expect(methods).toEqual([ 'debug', 'log', 'warn', 'error' ])
 	})
 
@@ -56,7 +56,7 @@ describe('Logger', () => {
 		const log = new Logger('test')
 		log.debug('d')
 		log.info('i')
-		expect(captured.map((c) => c.method)).toEqual([ 'log' ])
+		expect(captured.map(c => c.method)).toEqual([ 'log' ])
 	})
 
 	it('respects setEnabled(false)', () => {

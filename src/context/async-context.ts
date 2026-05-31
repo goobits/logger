@@ -27,8 +27,8 @@
  */
 
 import type { LogContext } from '../core/types.ts'
-import { runWithContext } from './store.ts'
 import { LogContextKeys } from './keys.ts'
+import { runWithContext } from './store.ts'
 
 /**
  * Run `fn` with `context` merged into the current async-local log context.

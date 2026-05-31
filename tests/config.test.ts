@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { LoggerConfig, getEffectiveLevel } from '../src/core/config.js'
+import { getEffectiveLevel, LoggerConfig } from '../src/core/config.js'
 import { LogLevel } from '../src/core/types.js'
 
 beforeEach(() => LoggerConfig.reset())

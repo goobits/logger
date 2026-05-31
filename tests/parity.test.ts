@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
-	LoggerConfig,
 	disableModule,
 	enableModule,
 	getEffectiveLevel,
 	isProductionLike,
+	LoggerConfig,
 	setGlobalLevel,
 	setModuleLevel
 } from '../src/core/config.js'
@@ -55,6 +55,7 @@ describe('bare-function config API', () => {
 		disableModule('noisy')
 		expect(getEffectiveLevel('noisy')).toBe(LogLevel.NONE)
 		enableModule('noisy')
+
 		// back to inheriting the global level
 		expect(getEffectiveLevel('noisy')).toBe(LoggerConfig.getLogLevel())
 	})

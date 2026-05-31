@@ -19,8 +19,8 @@
  * @module @goobits/logger/helpers
  */
 
-import type { LogContext, Logger } from '../core/types.ts'
 import { LogContextKeys } from '../context/keys.ts'
+import type { LogContext, Logger } from '../core/types.ts'
 import { errorWithCause } from './error-cause.ts'
 
 function now(): number {
@@ -53,7 +53,7 @@ export async function logTiming<T>(
 		const durationMs = Math.round(now() - startedAt)
 		logger.info(`${ operation } complete`, { ...baseContext, [LogContextKeys.DURATION_MS]: durationMs })
 		return result
-	} catch (error) {
+	} catch(error) {
 		const durationMs = Math.round(now() - startedAt)
 		errorWithCause(logger, `${ operation } failed`, error, { ...baseContext, [LogContextKeys.DURATION_MS]: durationMs })
 		throw error

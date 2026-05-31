@@ -81,10 +81,10 @@ describe('errorWithCause', () => {
 })
 
 describe('logTiming', () => {
-	it('emits start + complete with duration_ms on success', async () => {
+	it('emits start + complete with duration_ms on success', async() => {
 		const log = createLogger('m')
-		const result = await logTiming(log, 'db.query', async () => {
-			await new Promise((resolve) => setTimeout(resolve, 5))
+		const result = await logTiming(log, 'db.query', async() => {
+			await new Promise(resolve => setTimeout(resolve, 5))
 			return 42
 		})
 		expect(result).toBe(42)
@@ -103,10 +103,10 @@ describe('logTiming', () => {
 		expect(end.duration_ms).toBeGreaterThanOrEqual(0)
 	})
 
-	it('emits start + error with duration_ms + error chain on throw, then re-throws', async () => {
+	it('emits start + error with duration_ms + error chain on throw, then re-throws', async() => {
 		const log = createLogger('m')
 		await expect(
-			logTiming(log, 'flaky', async () => {
+			logTiming(log, 'flaky', async() => {
 				throw new Error('boom')
 			})
 		).rejects.toThrow('boom')
@@ -122,7 +122,7 @@ describe('logTiming', () => {
 		expect(err.error_message).toBe('boom')
 	})
 
-	it('passes through caller context to both lines', async () => {
+	it('passes through caller context to both lines', async() => {
 		const log = createLogger('m')
 		await logTiming(log, 'op', () => 'ok', { user_id: 'u1' })
 
@@ -132,7 +132,7 @@ describe('logTiming', () => {
 		expect(end.user_id).toBe('u1')
 	})
 
-	it('works with a sync fn return value', async () => {
+	it('works with a sync fn return value', async() => {
 		const log = createLogger('m')
 		const result = await logTiming(log, 'sync', () => 'hi')
 		expect(result).toBe('hi')

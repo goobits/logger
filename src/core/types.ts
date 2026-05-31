@@ -19,6 +19,7 @@ export type LogContext = Record<string, unknown>
  */
 export interface Logger {
 	readonly name?: string
+
 	/**
 	 * Debug.
 	 *
@@ -26,12 +27,14 @@ export interface Logger {
 	 * @param context - context.
 	 */
 	debug(message: string, context?: LogContext): void
+
 	/**
 	 * Debug.
 	 *
 	 * @param args - args.
 	 */
 	debug(...args: unknown[]): void
+
 	/**
 	 * Info.
 	 *
@@ -39,12 +42,14 @@ export interface Logger {
 	 * @param context - context.
 	 */
 	info(message: string, context?: LogContext): void
+
 	/**
 	 * Info.
 	 *
 	 * @param args - args.
 	 */
 	info(...args: unknown[]): void
+
 	/**
 	 * Warn.
 	 *
@@ -52,12 +57,14 @@ export interface Logger {
 	 * @param context - context.
 	 */
 	warn(message: string, context?: LogContext): void
+
 	/**
 	 * Warn.
 	 *
 	 * @param args - args.
 	 */
 	warn(...args: unknown[]): void
+
 	/**
 	 * Error.
 	 *
@@ -65,6 +72,7 @@ export interface Logger {
 	 * @param context - context.
 	 */
 	error(message: string, context?: LogContext): void
+
 	/**
 	 * Error.
 	 *
@@ -110,18 +118,25 @@ export type LogFormat = 'json' | 'human' | 'auto'
 
 /** Configuration shape for the global `LoggerConfig` API. */
 export interface LoggerConfiguration {
+
 	/** Master on/off switch. Default: `true`. */
 	enabled?: boolean
+
 	/** Default level for loggers that don't have a module-specific override. Default: `LogLevel.INFO`. */
 	level?: LogLevelValue
+
 	/** Output format. `'auto'` picks `'json'` when stdout is not a TTY, else `'human'`. Default: `'auto'`. */
 	format?: LogFormat
+
 	/** Include an ISO-8601 timestamp on each line. Default: `true`. */
 	showTimestamps?: boolean
+
 	/** Prefix prepended to every log line (e.g., `'[app]'`). Default: empty. */
 	globalPrefix?: string
+
 	/** Per-module level overrides. Module names match `new Logger(name)` argument. */
 	modules?: Record<string, LogLevelValue>
+
 	/**
  * When `true`, silence `debug`/`info` in production-like runtimes
  * (`NODE_ENV === 'production'` or non-TTY stdout) while staying verbose in
@@ -132,6 +147,7 @@ export interface LoggerConfiguration {
 
 /** Options accepted by `new Logger(...)` and `createLogger(...)`. */
 export interface LoggerInstanceOptions {
+
 	/** Base context merged into every emission from this logger and its children. */
 	context?: LogContext
 }
