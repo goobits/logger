@@ -12,5 +12,5 @@
  * @module @goobits/logger/context
  */
 
-export { withLogContextAsync, withRequestId } from './context/async-context.js'
-export { type LogContextKey, LogContextKeys } from './context/keys.js'
+export { withLogContextAsync, withRequestId } from './context/async-context.ts'
+export { type LogContextKey, LogContextKeys } from './context/keys.ts'

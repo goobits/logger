@@ -19,13 +19,57 @@ export type LogContext = Record<string, unknown>
  */
 export interface Logger {
 	readonly name?: string
+	/**
+	 * Debug.
+	 *
+	 * @param message - message.
+	 * @param context - context.
+	 */
 	debug(message: string, context?: LogContext): void
+	/**
+	 * Debug.
+	 *
+	 * @param args - args.
+	 */
 	debug(...args: unknown[]): void
+	/**
+	 * Info.
+	 *
+	 * @param message - message.
+	 * @param context - context.
+	 */
 	info(message: string, context?: LogContext): void
+	/**
+	 * Info.
+	 *
+	 * @param args - args.
+	 */
 	info(...args: unknown[]): void
+	/**
+	 * Warn.
+	 *
+	 * @param message - message.
+	 * @param context - context.
+	 */
 	warn(message: string, context?: LogContext): void
+	/**
+	 * Warn.
+	 *
+	 * @param args - args.
+	 */
 	warn(...args: unknown[]): void
+	/**
+	 * Error.
+	 *
+	 * @param message - message.
+	 * @param context - context.
+	 */
 	error(message: string, context?: LogContext): void
+	/**
+	 * Error.
+	 *
+	 * @param args - args.
+	 */
 	error(...args: unknown[]): void
 }
 
@@ -79,10 +123,10 @@ export interface LoggerConfiguration {
 	/** Per-module level overrides. Module names match `new Logger(name)` argument. */
 	modules?: Record<string, LogLevelValue>
 	/**
-	 * When `true`, silence `debug`/`info` in production-like runtimes
-	 * (`NODE_ENV === 'production'` or non-TTY stdout) while staying verbose in
-	 * an interactive dev TTY. Per-module overrides still win. Default: `false`.
-	 */
+ * When `true`, silence `debug`/`info` in production-like runtimes
+ * (`NODE_ENV === 'production'` or non-TTY stdout) while staying verbose in
+ * an interactive dev TTY. Per-module overrides still win. Default: `false`.
+ */
 	productionQuiet?: boolean
 }
 

@@ -26,14 +26,17 @@
  * @module @goobits/logger/context
  */
 
-import type { LogContext } from '../core/types.js'
-import { runWithContext } from './store.js'
-import { LogContextKeys } from './keys.js'
+import type { LogContext } from '../core/types.ts'
+import { runWithContext } from './store.ts'
+import { LogContextKeys } from './keys.ts'
 
 /**
  * Run `fn` with `context` merged into the current async-local log context.
  * Every `Logger.*` call inside `fn` (including across `await` boundaries)
  * receives the merged context automatically.
+ *
+ * @param context - Runtime context.
+ * @param fn - Function to call.
  */
 export async function withLogContextAsync<T>(context: LogContext, fn: () => Promise<T> | T): Promise<T> {
 	return runWithContext(context, fn)
@@ -42,6 +45,9 @@ export async function withLogContextAsync<T>(context: LogContext, fn: () => Prom
 /**
  * Convenience wrapper that sets a `request_id` for the duration of `fn`.
  * Equivalent to `withLogContextAsync({ [LogContextKeys.REQUEST_ID]: id }, fn)`.
+ *
+ * @param id - Identifier to use.
+ * @param fn - Function to call.
  */
 export async function withRequestId<T>(id: string, fn: () => Promise<T> | T): Promise<T> {
 	return runWithContext({ [LogContextKeys.REQUEST_ID]: id }, fn)

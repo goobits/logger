@@ -7,16 +7,16 @@
  * @module @goobits/logger
  */
 
-import { getCurrentLogContext } from '../context/store.js'
-import { getActiveFormat, getEffectiveLevel, getInternalState, isEnabled } from './config.js'
-import { formatHuman, formatJson } from './format.js'
+import { getCurrentLogContext } from '../context/store.ts'
+import { getActiveFormat, getEffectiveLevel, getInternalState, isEnabled } from './config.ts'
+import { formatHuman, formatJson } from './format.ts'
 import {
 	type LogContext,
 	type LogLevelValue,
 	type Logger as LoggerInterface,
 	type LoggerInstanceOptions,
 	LogLevel
-} from './types.js'
+} from './types.ts'
 
 function emit(
 	level: LogLevelValue,
@@ -86,6 +86,12 @@ export class Logger implements LoggerInterface {
 	private readonly moduleName: string | null
 	private readonly baseContext: LogContext
 
+	/**
+	 * Creates a Logger instance.
+	 *
+	 * @param moduleName - module name.
+	 * @param options - options.
+	 */
 	constructor(moduleName?: string | null, options: LoggerInstanceOptions = {}) {
 		this.moduleName = moduleName ?? null
 		this.baseContext = options.context ?? {}
@@ -97,25 +103,48 @@ export class Logger implements LoggerInterface {
 		return { ...asyncContext, ...this.baseContext, ...(context ?? {}) }
 	}
 
+	/**
+	 * Name.
+	 */
 	get name(): string {
 		return this.moduleName ?? ''
 	}
 
+	/**
+	 * Debug.
+	 *
+	 * @param args - args.
+	 */
 	debug(...args: unknown[]): void {
 		const { message, context, extraArgs } = normalizeArgs(args)
 		emit(LogLevel.DEBUG, this.moduleName, message, this.compose(context), extraArgs)
 	}
 
+	/**
+	 * Info.
+	 *
+	 * @param args - args.
+	 */
 	info(...args: unknown[]): void {
 		const { message, context, extraArgs } = normalizeArgs(args)
 		emit(LogLevel.INFO, this.moduleName, message, this.compose(context), extraArgs)
 	}
 
+	/**
+	 * Warn.
+	 *
+	 * @param args - args.
+	 */
 	warn(...args: unknown[]): void {
 		const { message, context, extraArgs } = normalizeArgs(args)
 		emit(LogLevel.WARN, this.moduleName, message, this.compose(context), extraArgs)
 	}
 
+	/**
+	 * Error.
+	 *
+	 * @param args - args.
+	 */
 	error(...args: unknown[]): void {
 		const { message, context, extraArgs } = normalizeArgs(args)
 		emit(LogLevel.ERROR, this.moduleName, message, this.compose(context), extraArgs)
@@ -125,6 +154,8 @@ export class Logger implements LoggerInterface {
 	 * Create a child logger with an extended base context. The child
 	 * inherits the parent's module name and merges the parent's context
 	 * with `additionalContext`.
+	 *
+	 * @param additionalContext - additional context value.
 	 */
 	child(additionalContext: LogContext): Logger {
 		return new Logger(this.moduleName, {
@@ -154,10 +185,10 @@ export class Logger implements LoggerInterface {
 }
 
 /**
- * Registry of module names seen by `createLogger`. Used for introspection
- * via {@link getLoggerNames}; it does NOT change instance identity —
- * `createLogger('x')` still returns a fresh `Logger` each call.
- */
+	 * Registry of module names seen by `createLogger`. Used for introspection
+	 * via {@link getLoggerNames}; it does NOT change instance identity —
+	 * `createLogger('x')` still returns a fresh `Logger` each call.
+	 */
 const moduleNames = new Set<string>()
 
 /**
@@ -166,6 +197,9 @@ const moduleNames = new Set<string>()
  * callers who prefer a function over `new`.
  *
  * Named loggers record their module name for {@link getLoggerNames}.
+ *
+ * @param moduleName - module name value.
+ * @param context - Runtime context.
  */
 export function createLogger(moduleName?: string, context: LogContext = {}): Logger {
 	if (moduleName) moduleNames.add(moduleName)
