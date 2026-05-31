@@ -32,14 +32,14 @@ export {
 	enableModule,
 	setGlobalLevel,
 	setModuleLevel
-} from './core/config.js'
-export { Logger, createLogger, getLoggerNames, logger, noopLogger } from './core/logger.js'
-export { createErrorCollector } from './core/error-collector.js'
+} from './core/config.ts'
+export { Logger, createLogger, getLoggerNames, logger, noopLogger } from './core/logger.ts'
+export { createErrorCollector } from './core/error-collector.ts'
 export {
 	type ErrorCollector,
 	type ScopedErrorCollector,
 	type ErrorEntry
-} from './core/error-collector.js'
+} from './core/error-collector.ts'
 export {
 	type LogContext,
 	type LogFormat,
@@ -52,4 +52,4 @@ export {
 	LEVELS,
 	LogLevel,
 	LogLevels
-} from './core/types.js'
+} from './core/types.ts'
