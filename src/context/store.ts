@@ -105,6 +105,7 @@ export async function runWithContext<T>(context: LogContext, fn: () => Promise<T
 /** Reset to empty. For tests. @internal */
 export function clearLogContext(): void {
 	fallbackStore = {}
+
 	// AsyncLocalStorage entries are scoped to their `run()` callback;
 	// nothing to clear globally.
 }

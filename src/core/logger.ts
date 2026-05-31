@@ -12,11 +12,10 @@ import { getActiveFormat, getEffectiveLevel, getInternalState, isEnabled } from 
 import { formatHuman, formatJson } from './format.ts'
 import {
 	type LogContext,
-	type LogLevelValue,
 	type Logger as LoggerInterface,
 	type LoggerInstanceOptions,
-	LogLevel
-} from './types.ts'
+	LogLevel,
+	type LogLevelValue } from './types.ts'
 
 function emit(
 	level: LogLevelValue,
@@ -99,6 +98,7 @@ export class Logger implements LoggerInterface {
 
 	private compose(context: LogContext | undefined): LogContext {
 		const asyncContext = getCurrentLogContext()
+
 		// Precedence: per-call > base > async-local.
 		return { ...asyncContext, ...this.baseContext, ...(context ?? {}) }
 	}

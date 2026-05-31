@@ -20,6 +20,7 @@ export interface ErrorEntry {
 
 /** Bounded, in-memory error history. Returned by {@link createErrorCollector}. */
 export interface ErrorCollector {
+
 	/**
  * Record an error with optional structured context.
  *
@@ -27,16 +28,20 @@ export interface ErrorCollector {
  * @param context - Runtime context.
  */
 	collect(error: Error, context?: LogContext): void
+
 	/** All recorded entries, oldest first (defensively copied). */
 	getEntries(): ErrorEntry[]
+
 	/** Number of entries currently retained. */
 	count(): number
+
 	/** Drop all recorded entries. */
 	clear(): void
 }
 
 /** Legacy scoped collector shape from the old Sketchpad logger. */
 export interface ScopedErrorCollector {
+
 	/**
 	 * Record an error with optional structured context.
 	 *
@@ -44,14 +49,19 @@ export interface ScopedErrorCollector {
 	 * @param context - Runtime context.
 	 */
 	record(error: Error, context?: LogContext): void
+
 	/** Emit a grouped summary and keep entries available for callers. */
 	flush(): void
+
 	/** Drop all recorded entries. */
 	clear(): void
+
 	/** Recorded entries, oldest first. */
 	readonly entries: readonly ErrorEntry[]
+
 	/** Number of recorded entries. */
 	readonly count: number
+
 	/** Human-readable collection scope. */
 	readonly scope: string
 }
@@ -75,6 +85,7 @@ const DEFAULT_MAX_ENTRIES = 100
 	 *   errors.count() // 1
 	 */
 export function createErrorCollector(maxEntries?: number, now?: () => number): ErrorCollector
+
 /**
  * Creates error collector.
  *
@@ -82,6 +93,7 @@ export function createErrorCollector(maxEntries?: number, now?: () => number): E
  * @param loggerName - logger name.
  */
 export function createErrorCollector(scope: string, loggerName?: string): ScopedErrorCollector
+
 /**
  * Creates error collector.
  *
