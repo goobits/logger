@@ -10,8 +10,8 @@
  * @internal
  */
 
-import type { LogContext, LogLevelName, LogLevelValue } from './types.js'
-import { LogLevel } from './types.js'
+import type { LogContext, LogLevelName, LogLevelValue } from './types.ts'
+import { LogLevel } from './types.ts'
 
 const LEVEL_NAME_BY_VALUE: Record<number, LogLevelName> = {
 	[LogLevel.DEBUG]: 'DEBUG',

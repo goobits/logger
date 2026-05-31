@@ -16,7 +16,7 @@ import {
 	type LoggerConfiguration,
 	LogLevel,
 	LEVEL_NAMES
-} from './types.js'
+} from './types.ts'
 
 interface InternalConfig {
 	enabled: boolean
@@ -124,7 +124,11 @@ readBootEnv()
  * created or in use across the process.
  */
 export const LoggerConfig = {
-	/** Set the global minimum log level. */
+	/**
+	 * Set the global minimum log level.
+	 *
+	 * @param level - Log level.
+	 */
 	setLogLevel(level: LogLevelValue | LogLevelName): void {
 		state.level = coerceLevel(level)
 	},
@@ -134,7 +138,11 @@ export const LoggerConfig = {
 		return state.level
 	},
 
-	/** Replace the per-module level map. Module name must match `new Logger(name)`. */
+	/**
+	 * Replace the per-module level map. Module name must match `new Logger(name)`.
+	 *
+	 * @param modules - Module level map.
+	 */
 	setModuleLevels(modules: Record<string, LogLevelValue | LogLevelName>): void {
 		const coerced: Record<string, LogLevelValue> = {}
 		for (const [ name, level ] of Object.entries(modules)) {
@@ -143,7 +151,12 @@ export const LoggerConfig = {
 		state.modules = coerced
 	},
 
-	/** Set the level for one module. */
+	/**
+	 * Set the level for one module.
+	 *
+	 * @param moduleName - Module name.
+	 * @param level - Log level.
+	 */
 	setModuleLevel(moduleName: string, level: LogLevelValue | LogLevelName): void {
 		state.modules = { ...state.modules, [moduleName]: coerceLevel(level) }
 	},
@@ -155,6 +168,8 @@ export const LoggerConfig = {
 	 * stay verbose locally and quiet in production without per-env wiring.
 	 * Per-module level overrides still win, so you can force one module
 	 * verbose even in production. Default: `false`.
+	 *
+	 * @param enabled - Whether the option is enabled.
 	 */
 	setProductionQuiet(enabled: boolean): void {
 		state.productionQuiet = enabled
@@ -164,7 +179,11 @@ export const LoggerConfig = {
 		return state.productionQuiet
 	},
 
-	/** Output format. `'auto'` picks JSON when stdout is non-TTY (typical in production). */
+	/**
+	 * Output format. `'auto'` picks JSON when stdout is non-TTY (typical in production).
+	 *
+	 * @param format - Log format.
+	 */
 	setFormat(format: LogFormat): void {
 		state.format = format
 	},
@@ -197,7 +216,11 @@ export const LoggerConfig = {
 		return state.globalPrefix
 	},
 
-	/** Apply multiple options at once. Unknown keys are ignored. */
+	/**
+	 * Apply multiple options at once. Unknown keys are ignored.
+	 *
+	 * @param options - Options for this operation.
+	 */
 	configure(options: LoggerConfiguration): void {
 		if (options.enabled !== undefined) state.enabled = options.enabled
 		if (options.level !== undefined) state.level = options.level
@@ -243,12 +266,21 @@ export const LoggerConfig = {
 // identical to calling the matching `LoggerConfig` method.
 // ===========================================================================
 
-/** Set the level for one module. Equivalent to `LoggerConfig.setModuleLevel`. */
+/**
+	 * Set the level for one module. Equivalent to `LoggerConfig.setModuleLevel`.
+	 *
+	 * @param moduleName - Module name.
+	 * @param level - Log level.
+	 */
 export function setModuleLevel(moduleName: string, level: LogLevelValue | LogLevelName): void {
 	LoggerConfig.setModuleLevel(moduleName, level)
 }
 
-/** Set the global minimum level. Equivalent to `LoggerConfig.setLogLevel`. */
+/**
+ * Set the global minimum level. Equivalent to `LoggerConfig.setLogLevel`.
+ *
+ * @param level - Log level.
+ */
 export function setGlobalLevel(level: LogLevelValue | LogLevelName): void {
 	LoggerConfig.setLogLevel(level)
 }
@@ -288,6 +320,8 @@ export function getConfig(): {
 /**
  * Silence a single module entirely (sets its level to `NONE`). Reverse with
  * `enableModule`.
+ *
+ * @param moduleName - module name value.
  */
 export function disableModule(moduleName: string): void {
 	LoggerConfig.setModuleLevel(moduleName, LogLevel.NONE)
@@ -296,6 +330,8 @@ export function disableModule(moduleName: string): void {
 /**
  * Remove a module's level override so it inherits the global level again.
  * Reverses `disableModule` (and any prior `setModuleLevel` for that module).
+ *
+ * @param moduleName - module name value.
  */
 export function enableModule(moduleName: string): void {
 	const { [moduleName]: _removed, ...rest } = state.modules
@@ -306,6 +342,7 @@ export function enableModule(moduleName: string): void {
  * Internal: returns the effective level for a logger. Per-module override
  * wins over the global level. Used by the `Logger` class.
  *
+ * @param moduleName - module name value.
  * @internal
  */
 export function getEffectiveLevel(moduleName: string | null): LogLevelValue {

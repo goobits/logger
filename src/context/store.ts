@@ -12,7 +12,7 @@
  * @internal
  */
 
-import type { LogContext } from '../core/types.js'
+import type { LogContext } from '../core/types.ts'
 
 type Store = LogContext
 
@@ -80,6 +80,8 @@ export function getCurrentLogContext(): LogContext {
  * boundaries and timers. On other runtimes, uses a single-slot
  * fallback (less correct under concurrency).
  *
+ * @param context - Runtime context.
+ * @param fn - Function to call.
  * @internal
  */
 export async function runWithContext<T>(context: LogContext, fn: () => Promise<T> | T): Promise<T> {

@@ -8,8 +8,8 @@
  * @module @goobits/logger
  */
 
-import { createLogger } from './logger.js'
-import type { LogContext } from './types.js'
+import { createLogger } from './logger.ts'
+import type { LogContext } from './types.ts'
 
 /** A recorded error with the context and time it was collected. */
 export interface ErrorEntry {
@@ -20,7 +20,12 @@ export interface ErrorEntry {
 
 /** Bounded, in-memory error history. Returned by {@link createErrorCollector}. */
 export interface ErrorCollector {
-	/** Record an error with optional structured context. */
+	/**
+ * Record an error with optional structured context.
+ *
+ * @param error - Error value.
+ * @param context - Runtime context.
+ */
 	collect(error: Error, context?: LogContext): void
 	/** All recorded entries, oldest first (defensively copied). */
 	getEntries(): ErrorEntry[]
@@ -32,7 +37,12 @@ export interface ErrorCollector {
 
 /** Legacy scoped collector shape from the old Sketchpad logger. */
 export interface ScopedErrorCollector {
-	/** Record an error with optional structured context. */
+	/**
+	 * Record an error with optional structured context.
+	 *
+	 * @param error - Error value.
+	 * @param context - Runtime context.
+	 */
 	record(error: Error, context?: LogContext): void
 	/** Emit a grouped summary and keep entries available for callers. */
 	flush(): void
@@ -50,20 +60,34 @@ export interface ScopedErrorCollector {
 const DEFAULT_MAX_ENTRIES = 100
 
 /**
- * Create an error collector that retains up to `maxEntries` of the most
- * recent errors (default 100). When the cap is exceeded the oldest entry is
- * evicted, so the collector never grows unbounded.
- *
- * `timestamp` is read from `Date.now()` at collection time. Pass a clock via
- * `now` for deterministic tests.
- *
- * @example
- *   const errors = createErrorCollector()
- *   errors.collect(new Error('boom'), { route: '/checkout' })
- *   errors.count() // 1
- */
+	 * Create an error collector that retains up to `maxEntries` of the most
+	 * recent errors (default 100). When the cap is exceeded the oldest entry is
+	 * evicted, so the collector never grows unbounded.
+	 *
+	 * `timestamp` is read from `Date.now()` at collection time. Pass a clock via
+	 * `now` for deterministic tests.
+	 *
+	 * @param maxEntries - max entries value.
+	 * @param now - now value.
+	 * @example
+	 *   const errors = createErrorCollector()
+	 *   errors.collect(new Error('boom'), { route: '/checkout' })
+	 *   errors.count() // 1
+	 */
 export function createErrorCollector(maxEntries?: number, now?: () => number): ErrorCollector
+/**
+ * Creates error collector.
+ *
+ * @param scope - scope.
+ * @param loggerName - logger name.
+ */
 export function createErrorCollector(scope: string, loggerName?: string): ScopedErrorCollector
+/**
+ * Creates error collector.
+ *
+ * @param first - first.
+ * @param second - second.
+ */
 export function createErrorCollector(
 	first: number | string = DEFAULT_MAX_ENTRIES,
 	second: (() => number) | string = () => Date.now()

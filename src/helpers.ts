@@ -6,5 +6,5 @@
  * @module @goobits/logger/helpers
  */
 
-export { errorWithCause } from './helpers/error-cause.js'
-export { logTiming } from './helpers/timing.js'
+export { errorWithCause } from './helpers/error-cause.ts'
+export { logTiming } from './helpers/timing.ts'

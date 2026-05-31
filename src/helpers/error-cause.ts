@@ -19,7 +19,7 @@
  * @module @goobits/logger/helpers
  */
 
-import type { LogContext, Logger } from '../core/types.js'
+import type { LogContext, Logger } from '../core/types.ts'
 
 function serializeError(error: unknown): Record<string, unknown> {
 	if (error instanceof Error) {

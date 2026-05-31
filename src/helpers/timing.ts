@@ -19,9 +19,9 @@
  * @module @goobits/logger/helpers
  */
 
-import type { LogContext, Logger } from '../core/types.js'
-import { LogContextKeys } from '../context/keys.js'
-import { errorWithCause } from './error-cause.js'
+import type { LogContext, Logger } from '../core/types.ts'
+import { LogContextKeys } from '../context/keys.ts'
+import { errorWithCause } from './error-cause.ts'
 
 function now(): number {
 	if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
