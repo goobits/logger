@@ -5,7 +5,9 @@ node_modules/
 
 # Build outputs (not used; package ships TS source directly)
 dist/
+**/dist/
 build/
+**/build/
 *.tsbuildinfo
 
 # Environment & secrets
