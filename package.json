@@ -27,7 +27,7 @@
 	"bugs": "https://github.com/goobits/logger/issues",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/goobits/logger.git"
+		"url": "https://github.com/goobits/logger.git"
 	},
 	"engines": {
 		"node": ">=22"
