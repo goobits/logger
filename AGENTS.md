@@ -93,3 +93,8 @@ DO NOT change the method shapes (e.g., adding a 3rd argument to `error`). Doing 
 - README + CHANGELOG updated for any user-facing change
 - The `Logger` interface shape (4 methods, 2 args each) is unchanged
 - New deps reviewed for license compatibility (permissive only)
+
+## Shared-Folder Git
+
+- Shared macOS/Linux checkouts should use `core.filemode=false`; chmod-only changes will not be noticed reliably.
+- When a script must be executable, run `git update-index --chmod=+x path/to/script.sh` and include that in the commit.
