@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LoggerConfig } from '../src/core/config.js'
+import { createErrorCollector } from '../src/core/error-collector.js'
 import { createLogger, noopLogger } from '../src/core/logger.js'
-import { errorWithCause, logTiming } from '../src/helpers.js'
+import { _resetErrorCaptureForTests, captureError, errorWithCause, logTiming } from '../src/helpers.js'
 
 const captured: Array<{ method: string; line: string }> = []
 let logSpy: ReturnType<typeof vi.spyOn>
 let errorSpy: ReturnType<typeof vi.spyOn>
+let warnSpy: ReturnType<typeof vi.spyOn>
 
 beforeEach(() => {
 	captured.length = 0
@@ -20,12 +22,17 @@ beforeEach(() => {
 	errorSpy = vi.spyOn(console, 'error').mockImplementation((line: unknown) => {
 		captured.push({ method: 'error', line: String(line) })
 	})
+	warnSpy = vi.spyOn(console, 'warn').mockImplementation((line: unknown) => {
+		captured.push({ method: 'warn', line: String(line) })
+	})
 })
 
 afterEach(() => {
 	logSpy.mockRestore()
 	errorSpy.mockRestore()
+	warnSpy.mockRestore()
 	LoggerConfig.reset()
+	_resetErrorCaptureForTests()
 })
 
 describe('errorWithCause', () => {
@@ -77,6 +84,72 @@ describe('errorWithCause', () => {
 	it('works with the pluggable interface (noopLogger silently swallows)', () => {
 		expect(() => errorWithCause(noopLogger, 'msg', new Error('e'))).not.toThrow()
 		expect(captured).toHaveLength(0)
+	})
+})
+
+describe('captureError', () => {
+	it('emits and collects the first error for a fingerprint', () => {
+		const log = createLogger('m')
+		const collector = createErrorCollector()
+		const result = captureError(log, 'cache cleanup failed', new Error('locked'), {
+			collector,
+			context: { operation: 'cache.cleanup' }
+		})
+
+		expect(result).toMatchObject({ captured: true, duplicate: false })
+		expect(captured).toHaveLength(1)
+		expect(captured[0]?.method).toBe('error')
+		const parsed = JSON.parse(captured[0]?.line ?? '{}')
+		expect(parsed.message).toBe('cache cleanup failed')
+		expect(parsed.operation).toBe('cache.cleanup')
+		expect(parsed.error_message).toBe('locked')
+		expect(collector.count()).toBe(1)
+	})
+
+	it('deduplicates repeated captures with the same generated fingerprint', () => {
+		const log = createLogger('m')
+		const error = new Error('locked')
+		const first = captureError(log, 'cache cleanup failed', error, {
+			context: { operation: 'cache.cleanup' }
+		})
+		const second = captureError(log, 'cache cleanup failed', error, {
+			context: { operation: 'cache.cleanup' }
+		})
+
+		expect(first.captured).toBe(true)
+		expect(second).toMatchObject({ captured: false, duplicate: true })
+		expect(captured).toHaveLength(1)
+	})
+
+	it('uses explicit dedupe keys when provided', () => {
+		const log = createLogger('m')
+		captureError(log, 'a', new Error('one'), { dedupeKey: 'same' })
+		const result = captureError(log, 'b', new Error('two'), { dedupeKey: 'same' })
+
+		expect(result).toMatchObject({ captured: false, duplicate: true, fingerprint: 'same' })
+		expect(captured).toHaveLength(1)
+	})
+
+	it('can emit recoverable captures as warnings', () => {
+		const log = createLogger('m')
+		captureError(log, 'video autoplay failed', new Error('not allowed'), {
+			level: 'warn',
+			context: { component: 'video-layer' }
+		})
+
+		expect(captured).toHaveLength(1)
+		expect(captured[0]?.method).toBe('warn')
+		const parsed = JSON.parse(captured[0]?.line ?? '{}')
+		expect(parsed.level).toBe('warn')
+		expect(parsed.error_message).toBe('not allowed')
+	})
+
+	it('allows duplicates when requested', () => {
+		const log = createLogger('m')
+		captureError(log, 'retry failed', new Error('timeout'), { allowDuplicates: true })
+		captureError(log, 'retry failed', new Error('timeout'), { allowDuplicates: true })
+
+		expect(captured).toHaveLength(2)
 	})
 })
 

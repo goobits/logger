@@ -2,6 +2,12 @@
 
 All notable changes to `@goobits/logger` are documented here. The format adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **`captureError` helper** — emits and optionally collects recoverable errors once per fingerprint, so swallowed cleanup/best-effort failures stay visible without duplicate error spam.
+
 ## [1.1.0] - 2026-05-28
 
 Feature-parity pass with the legacy Sketchpad logger, so its consumers (notably `@goobits/goo`) can migrate to this package without losing capability. All additive; no breaking changes.

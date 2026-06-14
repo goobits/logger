@@ -7,4 +7,6 @@
  */
 
 export { errorWithCause } from './helpers/error-cause.ts'
+export { _resetErrorCaptureForTests, captureError } from './helpers/error-capture.ts'
+export type { ErrorCaptureLevel, ErrorCaptureOptions, ErrorCaptureResult } from './helpers/error-capture.ts'
 export { logTiming } from './helpers/timing.ts'

@@ -21,7 +21,7 @@
 
 import type { LogContext, Logger } from '../core/types.ts'
 
-function serializeError(error: unknown): Record<string, unknown> {
+export function serializeError(error: unknown): Record<string, unknown> {
 	if (error instanceof Error) {
 		const out: Record<string, unknown> = {
 			error_type: error.name,

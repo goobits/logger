@@ -76,7 +76,7 @@ import { createLogger, LoggerConfig } from '@goobits/logger'
 import { withRequestId, LogContextKeys } from '@goobits/logger/context'
 
 // convenience helpers built on the pluggable interface
-import { errorWithCause, logTiming } from '@goobits/logger/helpers'
+import { captureError, errorWithCause, logTiming } from '@goobits/logger/helpers'
 ```
 
 ## Basic use
@@ -294,6 +294,26 @@ Emits:
   "error_stack": "PaymentDeclinedError: card declined...",
   "error_cause": { "error_type": "StripeError", "error_message": "..." },
   "order_id": "ord_42"
+}
+```
+
+## `captureError` — deduped recoverable error capture
+
+Use `captureError` when a failure is intentionally recoverable but should not be
+invisible. It emits the first matching error as structured log output, optionally
+records it in an `ErrorCollector`, and suppresses repeated captures with the same
+fingerprint.
+
+```ts
+import { captureError } from '@goobits/logger/helpers'
+
+try {
+  await cleanupTempFile(path)
+} catch (err) {
+  captureError(log, 'temp cleanup failed', err, {
+    level: 'warn',
+    context: { operation: 'cleanup.tempFile', path }
+  })
 }
 ```
 
