@@ -46,3 +46,6 @@ pnpm-debug.log*
 *.tgz
 .cache/
 .turbo/
+
+# Local agent metadata
+.llm/
