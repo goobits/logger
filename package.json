@@ -32,7 +32,7 @@
 	"engines": {
 		"node": ">=22"
 	},
-	"packageManager": "pnpm@10.13.1",
+	"packageManager": "pnpm@10.34.5",
 	"peerDependencies": {
 		"typescript": "^5.0.0"
 	},
@@ -42,10 +42,10 @@
 		}
 	},
 	"devDependencies": {
-		"@types/node": "^22.10.0",
-		"@vitest/coverage-v8": "^4.0.0",
-		"typescript": "^5.9.0",
-		"vitest": "^4.0.0"
+		"@types/node": "^22.20.1",
+		"@vitest/coverage-v8": "^4.1.10",
+		"typescript": "^5.9.3",
+		"vitest": "^4.1.10"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
