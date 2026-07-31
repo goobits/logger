@@ -2,6 +2,8 @@
 node_modules/
 .pnpm-store/
 .yarn/cache/
+/node_modules
+/.pnpm-store
 
 # Build outputs (not used; package ships TS source directly)
 dist/
@@ -9,6 +11,10 @@ dist/
 build/
 **/build/
 *.tsbuildinfo
+/dist
+/build
+/.svelte-kit
+/.turbo
 
 # Environment & secrets
 .env
@@ -33,6 +39,10 @@ Thumbs.db
 # Test coverage
 coverage/
 .nyc_output/
+/coverage
+/.nyc_output
+/playwright-report
+/test-results
 
 # Logs
 *.log
@@ -49,3 +59,4 @@ pnpm-debug.log*
 
 # Local agent metadata
 .llm/
+/.llm
