@@ -1,12 +1,8 @@
-# Minimal CI — runs on PR + push to main (pre-commit hooks carry most of
-# the gate weight at the repo level).
+# Optional remote check; local typecheck and tests carry the normal gate.
 name: CI
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
