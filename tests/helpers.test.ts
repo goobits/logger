@@ -157,7 +157,7 @@ describe('logTiming', () => {
 	it('emits start + complete with duration_ms on success', async() => {
 		const log = createLogger('m')
 		const result = await logTiming(log, 'db.query', async() => {
-			await new Promise(resolve => setTimeout(resolve, 5)) // test-shape: timing-probe - documented test timing behavior.
+			await new Promise(resolve => setTimeout(resolve, 5)) // documented test timing behavior.
 			return 42
 		})
 		expect(result).toBe(42)

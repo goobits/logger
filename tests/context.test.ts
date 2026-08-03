@@ -37,7 +37,7 @@ describe('withLogContextAsync', () => {
 		const log = createLogger('api')
 		await withLogContextAsync({ user_id: 'u1' }, async() => {
 			log.info('before')
-			await new Promise(resolve => setTimeout(resolve, 0)) // test-shape: timing-probe - documented test timing behavior.
+			await new Promise(resolve => setTimeout(resolve, 0)) // documented test timing behavior.
 			log.info('after')
 		})
 		expect(captured).toHaveLength(2)
@@ -54,12 +54,12 @@ describe('withLogContextAsync', () => {
 		await Promise.all([
 			withLogContextAsync({ user_id: 'A' }, async() => {
 				log.info('msg')
-				await new Promise(resolve => setTimeout(resolve, 10)) // test-shape: timing-probe - documented test timing behavior.
+				await new Promise(resolve => setTimeout(resolve, 10)) // documented test timing behavior.
 				log.info('msg')
 			}),
 			withLogContextAsync({ user_id: 'B' }, async() => {
 				log.info('msg')
-				await new Promise(resolve => setTimeout(resolve, 5)) // test-shape: timing-probe - documented test timing behavior.
+				await new Promise(resolve => setTimeout(resolve, 5)) // documented test timing behavior.
 				log.info('msg')
 			})
 		])
