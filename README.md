@@ -55,8 +55,9 @@ pnpm install
 `workspace:*` always tracks the submodule's current HEAD. For production, pin to a tag:
 
 ```bash
-cd packages/logger && git checkout v1.0.0 && cd ../..
-git add packages/logger && git commit -m "chore: pin @goobits/logger to v1.0.0"
+LOGGER_VERSION=$(node -p "require('./packages/logger/package.json').version")
+git -C packages/logger checkout "v${LOGGER_VERSION}"
+git add packages/logger && git commit -m "chore: pin @goobits/logger to v${LOGGER_VERSION}"
 ```
 
 ### Syncing from upstream
