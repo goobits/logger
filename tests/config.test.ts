@@ -1,18 +1,25 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
 	disableModule,
 	enableModule,
+	getConfig as getLegacyConfig,
 	getEffectiveLevel,
+	isProduction,
 	isProductionLike,
 	LoggerConfig,
+	resetConfig,
 	setGlobalLevel,
 	setModuleLevel
 } from '../src/core/config.js'
 import { LogLevel } from '../src/core/types.js'
 
 beforeEach(() => LoggerConfig.reset())
-afterEach(() => LoggerConfig.reset())
+afterEach(() => {
+	LoggerConfig.reset()
+	vi.unstubAllEnvs()
+	vi.unstubAllGlobals()
+})
 
 describe('LoggerConfig', () => {
 	it('defaults to enabled, INFO, auto, timestamps on, no prefix', () => {
@@ -59,7 +66,9 @@ describe('LoggerConfig', () => {
 			level: LogLevel.WARN,
 			format: 'json',
 			showTimestamps: false,
-			globalPrefix: '[svc]'
+			globalPrefix: '[svc]',
+			modules: { worker: LogLevel.ERROR },
+			productionQuiet: true
 		})
 		const c = LoggerConfig.getConfig()
 		expect(c.enabled).toBe(false)
@@ -67,6 +76,22 @@ describe('LoggerConfig', () => {
 		expect(c.format).toBe('json')
 		expect(c.showTimestamps).toBe(false)
 		expect(c.globalPrefix).toBe('[svc]')
+		expect(c.modules).toEqual({ worker: LogLevel.ERROR })
+		expect(c.productionQuiet).toBe(true)
+	})
+
+	it('round-trips individual configuration settings', () => {
+		LoggerConfig.setEnabled(false)
+		LoggerConfig.setFormat('human')
+		LoggerConfig.setShowTimestamps(false)
+		LoggerConfig.setGlobalPrefix('[worker]')
+		LoggerConfig.setProductionQuiet(true)
+
+		expect(LoggerConfig.getEnabled()).toBe(false)
+		expect(LoggerConfig.getFormat()).toBe('human')
+		expect(LoggerConfig.getShowTimestamps()).toBe(false)
+		expect(LoggerConfig.getGlobalPrefix()).toBe('[worker]')
+		expect(LoggerConfig.getProductionQuiet()).toBe(true)
 	})
 
 	it('configure() ignores undefined keys', () => {
@@ -97,6 +122,51 @@ describe('LoggerConfig', () => {
 		expect(c.format).toBe('auto')
 		expect(c.globalPrefix).toBe('')
 		expect(c.modules).toEqual({})
+	})
+
+	it('supports the legacy config snapshot and reset aliases', () => {
+		setGlobalLevel('DEBUG')
+		LoggerConfig.setModuleLevels({
+			debug: LogLevel.DEBUG,
+			info: LogLevel.INFO,
+			warn: LogLevel.WARN,
+			error: LogLevel.ERROR,
+			silent: LogLevel.NONE
+		})
+
+		const snapshot = getLegacyConfig()
+		expect(snapshot.globalLevel).toBe('DEBUG')
+		expect(snapshot.moduleOverrides).toEqual({
+			debug: 'DEBUG',
+			info: 'INFO',
+			warn: 'WARN',
+			error: 'ERROR',
+			silent: 'SILENT'
+		})
+		expect(snapshot.disabledModules).toEqual([ 'silent' ])
+		expect(snapshot.levels).toEqual([ 'DEBUG', 'INFO', 'WARN', 'ERROR', 'SILENT' ])
+		expect(typeof snapshot.isProduction).toBe('boolean')
+
+		resetConfig()
+		expect(LoggerConfig.getLogLevel()).toBe(LogLevel.INFO)
+	})
+})
+
+describe('isProduction', () => {
+	it('uses NODE_ENV before browser host detection', () => {
+		vi.stubEnv('NODE_ENV', 'production')
+		vi.stubGlobal('window', { location: { hostname: 'localhost' } })
+
+		expect(isProduction()).toBe(true)
+	})
+
+	it('distinguishes public and local browser hosts', () => {
+		vi.stubEnv('NODE_ENV', 'test')
+		vi.stubGlobal('window', { location: { hostname: 'app.example.com' } })
+		expect(isProduction()).toBe(true)
+
+		vi.stubGlobal('window', { location: { hostname: 'localhost' } })
+		expect(isProduction()).toBe(false)
 	})
 })
 

@@ -25,6 +25,14 @@ describe('error collector', () => {
 		expect(errors.getEntries().map(entry => entry.error.message)).toEqual([ 'b', 'c' ])
 	})
 
+	it('clamps non-positive caps to one retained entry', () => {
+		const errors = createErrorCollector(0)
+		errors.collect(new Error('a'))
+		errors.collect(new Error('b'))
+
+		expect(errors.getEntries().map(entry => entry.error.message)).toEqual([ 'b' ])
+	})
+
 	it('clears without mutating snapshots', () => {
 		const errors = createErrorCollector()
 		errors.collect(new Error('a'))
@@ -42,5 +50,31 @@ describe('error collector', () => {
 
 		expect(errorSpy).not.toHaveBeenCalled()
 		errorSpy.mockRestore()
+	})
+
+	it('records scoped errors and emits one grouped summary without clearing history', () => {
+		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		const errors = createErrorCollector('import batch', 'imports')
+
+		errors.flush()
+		expect(warnSpy).not.toHaveBeenCalled()
+
+		errors.record(new TypeError('bad row'), { type: 'validation', layer: 'rows' })
+		errors.record(new TypeError('bad id'), { type: 'validation' })
+		const unnamedError = new Error('unknown failure')
+		unnamedError.name = ''
+		errors.record(unnamedError)
+
+		expect(errors.scope).toBe('import batch')
+		expect(errors.count).toBe(3)
+		expect(errors.entries).toHaveLength(3)
+
+		errors.flush()
+		expect(warnSpy).toHaveBeenCalledTimes(1)
+		const summary = String(warnSpy.mock.calls[0]?.[0])
+		expect(summary).toContain('import batch: 3 error(s)')
+		expect(summary).toContain('validation (2): rows, bad id')
+		expect(summary).toContain('Error (1): unknown failure')
+		expect(errors.count).toBe(3)
 	})
 })
