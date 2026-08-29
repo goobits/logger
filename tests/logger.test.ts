@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LoggerConfig } from '../src/core/config.js'
-import { createLogger, Logger, noopLogger } from '../src/core/logger.js'
+import {
+	_resetLoggerRegistryForTests,
+	createLogger,
+	getLoggerNames,
+	Logger,
+	noopLogger
+} from '../src/core/logger.js'
 import { LogLevel } from '../src/core/types.js'
 
 const captured: Array<{ method: string; line: string }> = []
@@ -13,6 +19,7 @@ let debugSpy: ReturnType<typeof vi.spyOn>
 beforeEach(() => {
 	captured.length = 0
 	LoggerConfig.reset()
+	_resetLoggerRegistryForTests()
 	LoggerConfig.setShowTimestamps(false)
 	LoggerConfig.setFormat('human')
 
@@ -36,6 +43,7 @@ afterEach(() => {
 	errorSpy.mockRestore()
 	debugSpy.mockRestore()
 	LoggerConfig.reset()
+	_resetLoggerRegistryForTests()
 })
 
 describe('Logger', () => {
@@ -187,5 +195,23 @@ describe('Logger', () => {
 		const log = new Logger()
 		log.info('msg')
 		expect(captured[0]?.line).not.toMatch(/\[\s*\]/)
+	})
+})
+
+describe('logger registry', () => {
+	it('lists unique named modules in insertion order', () => {
+		createLogger('alpha')
+		createLogger('beta')
+		createLogger('alpha')
+		expect(getLoggerNames()).toEqual([ 'alpha', 'beta' ])
+	})
+
+	it('does not record the module-less logger', () => {
+		createLogger()
+		expect(getLoggerNames()).toEqual([])
+	})
+
+	it('returns a fresh logger instance for repeated names', () => {
+		expect(createLogger('same')).not.toBe(createLogger('same'))
 	})
 })

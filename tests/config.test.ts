@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { getEffectiveLevel, LoggerConfig } from '../src/core/config.js'
+import {
+	disableModule,
+	enableModule,
+	getEffectiveLevel,
+	isProductionLike,
+	LoggerConfig,
+	setGlobalLevel,
+	setModuleLevel
+} from '../src/core/config.js'
 import { LogLevel } from '../src/core/types.js'
 
 beforeEach(() => LoggerConfig.reset())
@@ -104,5 +112,76 @@ describe('getEffectiveLevel', () => {
 		LoggerConfig.setModuleLevel('chatty', LogLevel.DEBUG)
 		expect(getEffectiveLevel('chatty')).toBe(LogLevel.DEBUG)
 		expect(getEffectiveLevel('other')).toBe(LogLevel.WARN)
+	})
+})
+
+describe('functional config API', () => {
+	it('sets global and module levels through the same config owner', () => {
+		setGlobalLevel('ERROR')
+		expect(getEffectiveLevel(null)).toBe(LogLevel.ERROR)
+		setModuleLevel('verbose', 'DEBUG')
+		expect(getEffectiveLevel('verbose')).toBe(LogLevel.DEBUG)
+	})
+
+	it('disables a module until its override is cleared', () => {
+		disableModule('noisy')
+		expect(getEffectiveLevel('noisy')).toBe(LogLevel.NONE)
+		enableModule('noisy')
+		expect(getEffectiveLevel('noisy')).toBe(LoggerConfig.getLogLevel())
+	})
+})
+
+describe('productionQuiet', () => {
+	const previousNodeEnv = process.env['NODE_ENV']
+	let restoreTTY: (() => void) | null = null
+
+	function setTTY(value: boolean | undefined): void {
+		const hadValue = Object.prototype.hasOwnProperty.call(process.stdout, 'isTTY')
+		const original = (process.stdout as { isTTY?: boolean }).isTTY
+		Object.defineProperty(process.stdout, 'isTTY', { value, configurable: true })
+		restoreTTY = () => {
+			if (hadValue) {
+				Object.defineProperty(process.stdout, 'isTTY', { value: original, configurable: true })
+			} else {
+				delete (process.stdout as { isTTY?: boolean }).isTTY
+			}
+		}
+	}
+
+	afterEach(() => {
+		if (previousNodeEnv === undefined) delete process.env['NODE_ENV']
+		else process.env['NODE_ENV'] = previousNodeEnv
+		restoreTTY?.()
+		restoreTTY = null
+	})
+
+	it('does not change the configured level when disabled', () => {
+		process.env['NODE_ENV'] = 'production'
+		setGlobalLevel('DEBUG')
+		expect(getEffectiveLevel(null)).toBe(LogLevel.DEBUG)
+	})
+
+	it('floors the global level at WARN in production-like runtimes', () => {
+		process.env['NODE_ENV'] = 'production'
+		setGlobalLevel('DEBUG')
+		LoggerConfig.setProductionQuiet(true)
+		expect(isProductionLike()).toBe(true)
+		expect(getEffectiveLevel(null)).toBe(LogLevel.WARN)
+	})
+
+	it('keeps explicit module overrides', () => {
+		process.env['NODE_ENV'] = 'production'
+		LoggerConfig.setProductionQuiet(true)
+		setModuleLevel('debugme', 'DEBUG')
+		expect(getEffectiveLevel('debugme')).toBe(LogLevel.DEBUG)
+	})
+
+	it('does not quiet an interactive TTY', () => {
+		delete process.env['NODE_ENV']
+		setTTY(true)
+		setGlobalLevel('DEBUG')
+		LoggerConfig.setProductionQuiet(true)
+		expect(isProductionLike()).toBe(false)
+		expect(getEffectiveLevel(null)).toBe(LogLevel.DEBUG)
 	})
 })
