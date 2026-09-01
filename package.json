@@ -49,9 +49,9 @@
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage",
+		"test": "vitest --configLoader runner run",
+		"test:watch": "vitest --configLoader runner",
+		"test:coverage": "vitest --configLoader runner run --coverage",
 		"clean": "rm -rf node_modules .turbo"
 	}
 }
